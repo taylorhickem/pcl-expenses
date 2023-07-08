@@ -2,10 +2,9 @@ import json
 import pandas as pd
 import boto3
 import moneymanager as mm
-from io import StringIO
 
 S3_BUCKET = 'pcl-expenses-txns-upload'
-TXN_DATA_KEY = '2022.csv'
+TXN_DATA_KEY = '2023-01-01 ~ 12-31.xlsx'
 USER_DATA_DIR = '/opt'
 user_data = {
     'gsheet_config': USER_DATA_DIR + '/gsheet_config.json',
@@ -52,9 +51,8 @@ def txns_from_s3():
         Bucket=S3_BUCKET,
         Key=TXN_DATA_KEY
     )
-    contents = response['Body'].read().decode(mm.CSV_ENCODING)
-    txn_io = StringIO(contents)
-    txns = pd.read_csv(txn_io)
+    xlsx_contents = response['Body'].read()
+    txns = pd.read_excel(xlsx_contents)
     return txns
 
 
