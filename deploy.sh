@@ -9,6 +9,7 @@ files_compare () {
     fi
   else
     echo $3 not found at $endpoint
+      ACTION_TYPES=$ACTION_TYPES,$1
   fi
 }
 
