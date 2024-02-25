@@ -1,0 +1,20 @@
+[
+    {
+        "name": "AWSSDKPandas-Python39",
+        "AccountId": "336392948345",
+        "region": "ap-southeast-1",
+        "version": "12"
+    },
+    {
+        "name": "sqlgsheet",
+        "AccountId": "",
+        "region": "",
+        "version": "3"
+    },
+    {
+        "name": "pcl_expenses_user_data",
+        "AccountId": "",
+        "region": "",
+        "version": "1"
+    }
+]

@@ -1,0 +1,10 @@
+{
+    "StackName": "lambda-moneymanager-expenses-report",
+    "AccountId": "",
+    "StagingBucket": "pcl-moneymanager",
+    "DataPrefix": "expense_txns",
+    "DynamoDBTableName": "expense_txn",
+    "LayerArns": [],
+    "SourceBucket": "source-code-001",
+    "SourceKey": "deploy_package/lambda/moneymanager-expenses-report.zip"
+}
