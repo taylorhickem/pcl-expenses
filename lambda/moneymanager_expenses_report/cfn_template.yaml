@@ -1,0 +1,74 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: update moneymanager expense txn data from csv upload to s3
+Parameters:
+  AccountId:
+    Type: String
+    Description: AWS Account ID
+  StagingBucket:
+    Type: String
+    Description: S3 bucket for moneymanager data
+  DataPrefix:
+    Type: String
+    Description: S3 key event data subfolder
+  DynamoDBTableName:
+    Type: String
+    Description: DynamoDB table to store event data
+  LayerArns:
+    Type: String
+    Description: List of Layer Arns as comma seperated strings used by the lambda function
+  SourceBucket:
+    Type: String
+    Description: S3 bucket containing the source code
+  SourceKey:
+    Type: String
+    Description: S3 key source code zip file
+    
+Resources:
+  DataBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Ref StagingBucket
+
+  EventsUpdateLambda:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: moneymanager-expenses-report
+      Description: update moneymanager expense txn data from csv upload to s3
+      CodeUri:
+        Bucket: !Ref SourceBucket
+        Key: !Ref SourceKey
+      Handler: lambda_function.lambda_handler
+      Runtime: python3.9
+      MemorySize: 512
+      Timeout: 300
+      Environment:
+        Variables:
+          S3_BUCKET: !Ref StagingBucket
+      Layers: !Split [",", !Ref LayerArns]
+      Policies:
+        - S3CrudPolicy:
+            BucketName: !Ref StagingBucket
+        - DynamoDBCrudPolicy:
+            TableName: !Ref DynamoDBTableName
+      Tags:
+        role: LifeHacks
+        project: pcl-expenses
+      Events:
+        S3Bucket:
+          Type: S3
+          Properties:
+            Bucket: !Ref DataBucket
+            Events: 's3:ObjectCreated:*'
+            Filter:
+              S3Key:
+                Rules:
+                  - Name: prefix
+                    Value: !Ref DataPrefix
+  AllowS3ToCallLambdaPermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: 'lambda:InvokeFunction'
+      FunctionName: !Ref EventsUpdateLambda
+      Principal: s3.amazonaws.com
+      SourceArn: !GetAtt DataBucket.Arn

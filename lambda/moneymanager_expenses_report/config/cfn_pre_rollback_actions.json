@@ -1,0 +1,15 @@
+[
+  {
+    "resource_type": "lambda",
+    "resource_name": "s3bucket-cleanup",
+    "request_body" : {
+      "RequestType": "Delete",
+      "ResourceProperties": {
+        "BucketName": "%params.StagingBucket%"
+      },
+      "StackId": "",
+      "RequestId": "",
+      "LogicalResourceId": ""
+    }
+  }
+]

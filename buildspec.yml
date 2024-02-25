@@ -1,0 +1,32 @@
+version: 0.2
+
+phases:
+  install:
+    commands:
+      - echo 01 install phase started
+      - echo no install commands defined.
+      - echo install phase complete.       
+  pre_build:
+    commands:
+      - echo 02 pre_build phase started
+      - python --version
+      - aws --version aws-cli
+      - git --version
+      - env
+      - ls -LR
+      - echo pre_build phase complete.
+  build:
+    commands:
+      - echo 03 build phase started
+      - source ./upload_to_s3.sh
+      - source ./deploy.sh
+      - echo build phase complete.
+  post_build:
+    commands:
+      - echo 04 post_build phase started
+      - echo no post_build commands defined.
+      - echo post_build phase complete.
+      - echo build all phases complete.
+artifacts:
+  files:
+    - "lambda/**/*"
