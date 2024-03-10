@@ -7,7 +7,7 @@ import moneymanager as mm
 ENV_VARIABLES = [
     'S3_BUCKET'
 ]
-TXN_DATA_KEY = '2023-01-01 ~ 12-31.xlsx'
+TXN_DATA_KEY = 'txns.xlsx'
 USER_DATA_DIR = '/opt'
 user_data = {
     'gsheet_config': USER_DATA_DIR + '/gsheet_config.json',
