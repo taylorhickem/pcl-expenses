@@ -98,14 +98,15 @@ def post_to_gsheet():
                       input_option='USER_ENTERED')
 
     # 02 subcategories
-    subcategory_report = TABLES['subcategory_report']
+    #subcategory_report = TABLES['subcategory_report']
+
     # data fields
-    db.post_to_gsheet(subcategory_report, 'expenses', 'subcategory_report',
-                      input_option='USER_ENTERED')
+    #db.post_to_gsheet(subcategory_report, 'expenses', 'subcategory_report',
+    #                  input_option='USER_ENTERED')
     # category field
-    db.post_to_gsheet(subcategory_report.reset_index()[['Category', 'Subcategory']],
-                      'expenses', 'subcategories',
-                      input_option='USER_ENTERED')
+    #db.post_to_gsheet(subcategory_report.reset_index()[['Category', 'Subcategory']],
+    #                  'expenses', 'subcategories',
+    #                  input_option='USER_ENTERED')
 
 
 # -----------------------------------------------------
