@@ -33,8 +33,6 @@ def lambda_handler(event, context):
     mm.db.DB_SOURCE = 'remote'
     mm.load()
 
-    # mm.update(txns=s3_txns)
-
     refresh_event_data()
 
     status_code = 200
