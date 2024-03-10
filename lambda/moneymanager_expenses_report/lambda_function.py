@@ -32,6 +32,7 @@ def lambda_handler(event, context):
     )
     mm.db.DB_SOURCE = 'remote'
     mm.load()
+    mm.update(s3_txns)
 
     refresh_event_data()
 
