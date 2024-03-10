@@ -1,8 +1,12 @@
+import os
 import pandas as pd
 import boto3
 import moneymanager as mm
 
-S3_BUCKET = 'pcl-expenses-txns-upload'
+
+ENV_VARIABLES = [
+    'S3_BUCKET'
+]
 TXN_DATA_KEY = '2023-01-01 ~ 12-31.xlsx'
 USER_DATA_DIR = '/opt'
 user_data = {
@@ -42,6 +46,12 @@ def lambda_handler(event, context):
     print(response)
 
     return response
+
+
+def load_parameters():
+    for k in ENV_VARIABLES:
+        if k in os.environ:
+            globals()[k] = os.environ[k]
 
 
 def txns_from_s3():
