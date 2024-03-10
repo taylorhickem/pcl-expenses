@@ -45,7 +45,8 @@ def update(txns=None):
 #setup
 #-----------------------------------------------------------------------------
 def load():
-    db.load()
+    db.load_config()
+    db.load_gsheet()
     update_config()
 
 

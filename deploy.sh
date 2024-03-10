@@ -20,6 +20,7 @@ ACTION_TYPES='"function_update"'
 echo checking for changes to classify deploy actions ...
 echo GIT_REPO $GIT_REPO
 echo LAYERS_PATH $LAYERS_PATH
+echo CONFIG_PATH $CONFIG_PATH
 echo CFN_TEMPLATE_PATH $CFN_TEMPLATE_PATH
 
 mkdir remote_files
@@ -29,6 +30,15 @@ files_compare '"layers_update"' $LAYERS_PATH layers.json
 
 echo checking for changes in cfn_template.yaml ...
 files_compare '"stack_update"' $CFN_TEMPLATE_PATH cfn_template.yaml
+
+echo checking for changes in cfn_parameters.json ...
+files_compare '"stack_update"' $CONFIG_PATH/cfn_parameters.json cfn_parameters.json
+
+echo checking for changes in cfn_pre_rollback_actions.json ...
+files_compare '"stack_update"' $CONFIG_PATH/cfn_pre_rollback_actions.json cfn_pre_rollback_actions.json
+
+echo checking for changes in cfn_tags.json ...
+files_compare '"stack_update"' $CONFIG_PATH/cfn_tags.json cfn_tags.json
 
 if [ $? == 0 ]; then
   rm -r remote_files

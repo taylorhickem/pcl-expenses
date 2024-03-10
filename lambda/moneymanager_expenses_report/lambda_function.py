@@ -3,11 +3,11 @@ import pandas as pd
 import boto3
 import moneymanager as mm
 
-
+#test
 ENV_VARIABLES = [
     'S3_BUCKET'
 ]
-TXN_DATA_KEY = '2023-01-01 ~ 12-31.xlsx'
+TXN_DATA_KEY = 'expense_txns/txns.xlsx'
 USER_DATA_DIR = '/opt'
 user_data = {
     'gsheet_config': USER_DATA_DIR + '/gsheet_config.json',
@@ -22,6 +22,7 @@ def lambda_handler(event, context):
     status_code = 500
     message = 'failed'
 
+    load_parameters()
     s3_txns = txns_from_s3()
 
     mm.db.set_user_data(
@@ -31,8 +32,6 @@ def lambda_handler(event, context):
     )
     mm.db.DB_SOURCE = 'remote'
     mm.load()
-
-    # mm.update(txns=s3_txns)
 
     refresh_event_data()
 
