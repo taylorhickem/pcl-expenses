@@ -22,6 +22,7 @@ def lambda_handler(event, context):
     status_code = 500
     message = 'failed'
 
+    load_parameters()
     s3_txns = txns_from_s3()
 
     mm.db.set_user_data(
