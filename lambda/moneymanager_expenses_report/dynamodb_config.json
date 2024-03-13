@@ -1,6 +1,6 @@
 {
   "tables": {
-    "expense_txn": {
+    "pcl_expense_txns": {
       "partition_key": "start_date",
       "sort_key": "",
       "columns": {

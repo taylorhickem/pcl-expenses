@@ -27,7 +27,7 @@ FIELDS = {
     'txn_type': 'Income/Expense',
     'category': 'Category'
 }
-TXN_TYPE_EXPENSE = 'Expense'
+TXN_TYPE_EXPENSE = 'Exp.'
 REPORTING_YEAR = 0
 REPORTING_MONTH = 0
 
