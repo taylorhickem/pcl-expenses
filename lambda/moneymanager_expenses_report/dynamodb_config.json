@@ -1,0 +1,25 @@
+{
+  "tables": {
+    "expense_txn": {
+      "partition_key": "start_date",
+      "sort_key": "",
+      "columns": {
+        "start_date": "str",
+        "day": "int",
+        "month": "int",
+        "year": "int",
+        "Period": "str",
+        "Category": "str",
+        "Subcategory": "str",
+        "Note": "str",
+        "SGD": "float",
+        "Income/Expense": "str",
+        "Description": "str",
+        "Amount": "float",
+        "Currency": "str",
+        "Accounts": "float"
+      }
+    }
+  }
+}
+
