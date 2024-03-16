@@ -3,6 +3,7 @@
     "AccountId": "",
     "StagingBucket": "pcl-moneymanager",
     "DataPrefix": "expense_txns",
+    "DataFile": "txns.xlsx",
     "DynamoDBTableName": "pcl_expense_txns",
     "LayerArns": [],
     "SourceBucket": "source-code-001",

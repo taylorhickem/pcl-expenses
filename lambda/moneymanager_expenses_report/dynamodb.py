@@ -69,9 +69,6 @@ class DynamoDBTable(object):
                      for i in range(row_count)]
         return items
 
-    def _df_to_items_json_method(self, df: pd.DataFrame) -> list:
-        pass
-
     def as_dataframe(self, items: list) -> pd.DataFrame:
         df = pd.DataFrame([], columns=self.columns)
         if len(items) > 0:
