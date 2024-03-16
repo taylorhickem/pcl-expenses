@@ -21,9 +21,9 @@ LAYERS_DIR = '/opt'
 LOCAL_DIR = ''
 USER_DATA_FILES = {
     'gsheet_config': 'gsheet_config.json',
-    'client_secret': 'client_secret.json',
-    'db_config': 'dynamodb_config.json'
+    'client_secret': 'client_secret.json'
 }
+DB_CONFIG_PATH = 'dynamodb_config.json'
 USER_DATA = {}
 s3_client = None
 
@@ -89,6 +89,7 @@ def set_user_data(env='prod'):
 
 
 def moneymanager_load(env='prod'):
+    USER_DATA['db_config'] = DB_CONFIG_PATH
     mm.db.set_user_data(**USER_DATA)
     mm.DB_TABLE_NAME = DB_TABLE_NAME
     mm.db.DB_SOURCE = 'generic'
