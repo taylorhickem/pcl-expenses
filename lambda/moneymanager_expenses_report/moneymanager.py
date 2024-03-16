@@ -43,9 +43,12 @@ def update(txns_raw: pd.DataFrame):
     load()
     if len(txns_raw) > 0:
         txns = transactions_format(txns_raw)
-        db_update(txns)
-        reports_update(txns)
-        post_to_gsheet()
+        new_txns = db_update(txns)
+        if new_txns:
+            reports_update(txns)
+            post_to_gsheet()
+        else:
+            message = 'no new transactions to update.'
     else:
         message = 'no new transactions to update.'
 
@@ -103,13 +106,16 @@ def post_to_gsheet():
 def db_update(rows: pd.DataFrame, has_duplicates=True):
     """ updates the database with new rows
     """
+    new_rows = True
     if db.table_exists(DB_TABLE_NAME) and has_duplicates:
         unique_rows = remove_duplicates(rows)
         if len(unique_rows) > 0:
             db_update(unique_rows, has_duplicates=False)
+        else:
+            new_rows = False
     else:
         db_rows_insert(rows)
-
+    return new_rows
 
 def remove_duplicates(rows: pd.DataFrame) -> pd.DataFrame:
     """ removes duplicates and returns only unique rows that are not in the db
