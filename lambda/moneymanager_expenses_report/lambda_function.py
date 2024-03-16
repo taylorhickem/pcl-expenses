@@ -38,20 +38,21 @@ def run(env='prod', event=None, context=None):
     env_load(env=env)
     set_user_data(env=env)
 
-    try:
-        txns = get_txns(env=env)
-        moneymanager_load(env=env)
-        success, message = mm.update(txns)
-        if success:
-            status_code = 200
-            message = f'found {len(txns)} txns. {message}'
-        else:
-            status_code = 500
-    except Exception as e:
-        status_code = 500
-        message = f'ERROR. failed to update report. {str(e)}'
-    else:
+    #try:
+    txns = get_txns(env=env)
+    moneymanager_load(env=env)
+    success, message = mm.update(txns)
+    if success:
+        status_code = 200
+        message = f'found {len(txns)} txns. {message}'
         cleanup()
+    else:
+        status_code = 500
+    #except Exception as e:
+    #    status_code = 500
+    #    message = f'ERROR. failed to update report. {str(e)}'
+    #else:
+    #cleanup()
 
     response = {
         'status_code': status_code,
@@ -104,6 +105,7 @@ def load_parameters():
 
 def txns_from_s3():
     load_s3_client()
+    print(f'downloading txn data from S3 Bucket: {S3_BUCKET} Object key: {TXN_DATA_KEY}')
     response = s3_client.get_object(
         Bucket=S3_BUCKET,
         Key=TXN_DATA_KEY
