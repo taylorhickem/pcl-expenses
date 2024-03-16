@@ -75,6 +75,6 @@ Resources:
     Type: AWS::Lambda::Permission
     Properties:
       Action: 'lambda:InvokeFunction'
-      FunctionName: !Ref EventsUpdateLambda
+      FunctionName: !Ref TxnsUpdateLambda
       Principal: s3.amazonaws.com
       SourceArn: !GetAtt DataBucket.Arn
