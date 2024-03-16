@@ -1,49 +1,60 @@
 """ this script imports the export file from money manager app
-converts the raw file into two expense reports
+converts the raw file into an expense report with the tables:
 
+tables:
 1. main categories
-2. sub categories
 
-each report has rows of the categories (or subcategories)
+the report has rows of the categories
 and columns for each month in the year
 
 """
 #-----------------------------------------------------------------------------
 #import dependencies
 #-----------------------------------------------------------------------------
-import sys
 from sqlgsheet import database as db
-import datetime as dt
 import pandas as pd
-
+import datetime as dt
 
 #-----------------------------------------------------------------------------
 #Variables
 #-----------------------------------------------------------------------------
-TABLES = {
-    'events': []
+KEY_FIELD = 'start_date'
+LAST_MODIFIED_FIELD = 'last_modified'
+DB_TABLE_NAME = 'expense_txns'
+FIELDS = {
+    'amount': 'SGD',
+    'start_date': 'Period',
+    'txn_type': 'Income/Expense',
+    'category': 'Category'
 }
-DATE_FORMAT = '%d-%m-%Y'
-CSV_ENCODING = 'iso-8859-1'
-CSV_FILENAME = '../../2022.csv'
-XLSX_FILENAME = '../../2023-01-01 ~ 12-31.xlsx'
-REPORING_YEAR = 2020
-REPORING_MONTH = 12
+DROP_FIELDS = [
+    'Accounts.1'
+]
+TXN_TYPE_EXPENSE = 'Exp.'
+REPORTING_YEAR = 0
+REPORTING_MONTH = 0
+REPORTS = {}
 
 
-#-----------------------------------------------------------------------------
-#main
-#-----------------------------------------------------------------------------
-def update(txns=None):
+def update(txns_raw: pd.DataFrame):
+    report_success = True
+    message = 'report updated.'
+
     load()
-    load_transactions(events=txns)
-    post_to_gsheet()
-    print('report updated!')
+    if len(txns_raw) > 0:
+        txns = transactions_format(txns_raw)
+        new_txns = db_update(txns)
+        if new_txns:
+            reports_update(txns)
+            post_to_gsheet()
+        else:
+            message = 'no new transactions to update.'
+    else:
+        message = 'no new transactions to update.'
+
+    return report_success, message
 
 
-#-----------------------------------------------------------------------------
-#setup
-#-----------------------------------------------------------------------------
 def load():
     db.load_config()
     db.load_gsheet()
@@ -51,82 +62,99 @@ def load():
 
 
 def update_config():
-    global REPORING_YEAR, REPORING_MONTH
+    global REPORTING_MONTH, REPORTING_YEAR
     config = db.get_sheet('expenses', 'config')
     parameters = config[config['group'] == 'reporting'][
         ['parameter', 'value']].set_index('parameter')['value']
-    REPORING_YEAR = int(parameters['reporting_year'])
-    REPORING_MONTH = int(parameters['reporting_month'])
+    REPORTING_YEAR = int(parameters['reporting_year'])
+    REPORTING_MONTH = int(parameters['reporting_month'])
 
 
-#-----------------------------------------------------------------------------
-#subfunctions
-#-----------------------------------------------------------------------------
-def load_transactions(events=None, event_format='xlsx'):
-    global TABLES
-    if events is None:
-        if event_format == 'xlsx':
-            events = pd.read_excel(XLSX_FILENAME)
-        elif event_format == 'csv':
-            events = pd.read_csv(CSV_FILENAME, encoding=CSV_ENCODING)
-    subfields = ['Period',
-                 'Category',
-                 'Subcategory',
-                 'Amount']
-    events['start_date'] = events['Period'].apply(lambda x: x.date())
-    events['day'] = events['start_date'].apply(lambda x: x.day)
-    events['month'] = events['start_date'].apply(lambda x: x.month)
-    events['year'] = events['start_date'].apply(lambda x: x.year)
-    events = events[events['Income/Expense'] == 'Expense'].copy()
-    events = events[events['year'] == REPORING_YEAR].copy()
-    events = events[events['month'] <= REPORING_MONTH].copy()
-    events_pvt = pd.pivot_table(events, index='Category', columns='month',
-                             values='Amount', aggfunc='sum')
-    events_pvt.fillna(0, inplace=True)
-    TABLES['main_category_report'] = events_pvt
+def transactions_format(txns_raw: pd.DataFrame):
+    for f in DROP_FIELDS:
+        del txns_raw[f]
+    txns = txns_raw.copy()
+    txns['start_date'] = txns[FIELDS['start_date']]
+    txns['day'] = txns['start_date'].apply(lambda x: x.day)
+    txns['month'] = txns['start_date'].apply(lambda x: x.month)
+    txns['year'] = txns['start_date'].apply(lambda x: x.year)
+    txns = txns[txns[FIELDS['txn_type']] == TXN_TYPE_EXPENSE].copy()
+    txns = txns[txns['year'] == REPORTING_YEAR].copy()
+    txns = txns[txns['month'] <= REPORTING_MONTH].copy()
+    return txns
+
+
+def reports_update(txns: pd.DataFrame):
+    global REPORTS
+    if len(txns) > 0:
+        txns_pvt = pd.pivot_table(txns, index=FIELDS['category'], columns='month',
+            values=FIELDS['amount'], aggfunc='sum')
+        txns_pvt.fillna(0, inplace=True)
+        REPORTS['main_category_report'] = txns_pvt
 
 
 def post_to_gsheet():
     # 01 main category
-    main_category_report = TABLES['main_category_report']
-    # data fields
+    main_category_report = REPORTS['main_category_report']
     db.post_to_gsheet(main_category_report, 'expenses', 'main_category_report',
                       input_option='USER_ENTERED')
-    # category field
     db.post_to_gsheet(main_category_report.reset_index()[['Category']],
                       'expenses', 'main_categories',
                       input_option='USER_ENTERED')
 
-    # 02 subcategories
-    #subcategory_report = TABLES['subcategory_report']
 
-    # data fields
-    #db.post_to_gsheet(subcategory_report, 'expenses', 'subcategory_report',
-    #                  input_option='USER_ENTERED')
-    # category field
-    #db.post_to_gsheet(subcategory_report.reset_index()[['Category', 'Subcategory']],
-    #                  'expenses', 'subcategories',
-    #                  input_option='USER_ENTERED')
-
-
-# -----------------------------------------------------
-# Command line interface
-# -----------------------------------------------------
-def autorun():
-    if len(sys.argv) > 1:
-        process_name = sys.argv[1]
-        if process_name == 'pink_floyd':
-            print('dont take a slice of my pie')
+def db_update(rows: pd.DataFrame, has_duplicates=True):
+    """ updates the database with new rows
+    """
+    new_rows = True
+    if db.table_exists(DB_TABLE_NAME) and has_duplicates:
+        unique_rows = remove_duplicates(rows)
+        if len(unique_rows) > 0:
+            db_update(unique_rows, has_duplicates=False)
+        else:
+            new_rows = False
     else:
-        update()
+        db_rows_insert(rows)
+    return new_rows
+
+def remove_duplicates(rows: pd.DataFrame) -> pd.DataFrame:
+    """ removes duplicates and returns only unique rows that are not in the db
+    """
+    # get the rows from the db
+    db_rows = db_query()
+
+    # add only the new events not already in the database
+    not_in_db = pd.concat([db_rows, db_rows, rows])
+    not_in_db.drop_duplicates(
+        subset=[KEY_FIELD],
+        keep=False,
+        inplace=True
+    )
+
+    return not_in_db
 
 
-if __name__ == "__main__":
-    autorun()
-# -----------------------------------------------------
-# Reference code
-# -----------------------------------------------------
+def db_query() -> pd.DataFrame:
+    db_events = db.get_table(DB_TABLE_NAME)
+    if db_events is None:
+        db_events = pd.DataFrame([])
+    else:
+        if LAST_MODIFIED_FIELD in db_events:
+            del db_events[LAST_MODIFIED_FIELD]
+    return db_events
 
-#-----------------------------------------------------------------------------
-#main
-#-----------------------------------------------------------------------------
+
+def db_rows_insert(rows: pd.DataFrame):
+    with_lm = add_lm_timestamp(rows)
+    if db.table_exists(DB_TABLE_NAME):
+        db.rows_insert(with_lm, DB_TABLE_NAME, con=db.con)
+    else:
+        db.update_table(with_lm, DB_TABLE_NAME, append=False)
+
+
+def add_lm_timestamp(rows: pd.DataFrame) -> pd.DataFrame:
+    with_lm = rows.copy()
+    if len(with_lm) > 0:
+        last_modified = dt.datetime.now()
+        with_lm[LAST_MODIFIED_FIELD] = last_modified
+    return with_lm

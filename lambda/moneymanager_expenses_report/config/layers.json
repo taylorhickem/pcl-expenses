@@ -6,10 +6,10 @@
         "version": "12"
     },
     {
-        "name": "dependencies",
+        "name": "sqlgsheet",
         "AccountId": "",
         "region": "",
-        "version": "17"
+        "version": "7"
     },
     {
         "name": "pcl_expenses_user_data",

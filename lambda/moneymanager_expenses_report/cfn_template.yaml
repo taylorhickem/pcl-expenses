@@ -10,10 +10,13 @@ Parameters:
     Description: S3 bucket for moneymanager data
   DataPrefix:
     Type: String
-    Description: S3 key event data subfolder
+    Description: S3 key txn data subfolder
+  DataFile:
+    Type: String
+    Description: txn data file name
   DynamoDBTableName:
     Type: String
-    Description: DynamoDB table to store event data
+    Description: DynamoDB table to store txn data
   LayerArns:
     Type: String
     Description: List of Layer Arns as comma seperated strings used by the lambda function
@@ -30,7 +33,7 @@ Resources:
     Properties:
       BucketName: !Ref StagingBucket
 
-  EventsUpdateLambda:
+  TxnsUpdateLambda:
     Type: AWS::Serverless::Function
     Properties:
       FunctionName: moneymanager-expenses-report
@@ -45,6 +48,9 @@ Resources:
       Environment:
         Variables:
           S3_BUCKET: !Ref StagingBucket
+          S3_PREFIX: !Ref DataPrefix
+          DATA_FILE: !Ref DataFile
+          DB_TABLE_NAME: !Ref DynamoDBTableName
       Layers: !Split [",", !Ref LayerArns]
       Policies:
         - S3CrudPolicy:
@@ -69,6 +75,6 @@ Resources:
     Type: AWS::Lambda::Permission
     Properties:
       Action: 'lambda:InvokeFunction'
-      FunctionName: !Ref EventsUpdateLambda
+      FunctionName: !Ref TxnsUpdateLambda
       Principal: s3.amazonaws.com
       SourceArn: !GetAtt DataBucket.Arn

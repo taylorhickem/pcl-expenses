@@ -1,0 +1,26 @@
+{
+  "tables": {
+    "pcl_expense_txns": {
+      "last_modified": "last_modified",
+      "key": "start_date",
+      "partition_key": "start_date",
+      "sort_key": "",
+      "columns": {
+        "start_date": "datetime(%Y-%m-%d %H:%M:%S)",
+        "last_modified": "datetime(%Y-%m-%d %H:%M:%S)",
+        "day": "int",
+        "month": "int",
+        "year": "int",
+        "Period": "datetime(%Y-%m-%d %H:%M:%S)",
+        "Category": "str",
+        "Subcategory": "str",
+        "Note": "str",
+        "SGD": "decimal(2)",
+        "Income/Expense": "str",
+        "Description": "str",
+        "Amount": "decimal(2)",
+        "Currency": "str"
+      }
+    }
+  }
+}
