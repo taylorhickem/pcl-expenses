@@ -87,10 +87,17 @@ def transactions_format(txns_raw: pd.DataFrame):
 def reports_update(txns: pd.DataFrame):
     global REPORTS
     if len(txns) > 0:
+        # 01 main category report
         txns_pvt = pd.pivot_table(txns, index=FIELDS['category'], columns='month',
             values=FIELDS['amount'], aggfunc='sum')
         txns_pvt.fillna(0, inplace=True)
         REPORTS['main_category_report'] = txns_pvt
+
+        # 02 subcategory report
+        sub_cat_pvt = pd.pivot_table(txns, index=[FIELDS['category'], 'Subcategory'], columns='month',
+                                     values=FIELDS['amount'], aggfunc='sum')
+        sub_cat_pvt.fillna(0, inplace=True)
+        REPORTS['subcategory_report'] = sub_cat_pvt
 
 
 def post_to_gsheet():
@@ -100,6 +107,16 @@ def post_to_gsheet():
                       input_option='USER_ENTERED')
     db.post_to_gsheet(main_category_report.reset_index()[['Category']],
                       'expenses', 'main_categories',
+                      input_option='USER_ENTERED')
+
+    #02 subcategories
+    subcategory_report = REPORTS['subcategory_report']
+    #data fields
+    db.post_to_gsheet(subcategory_report, 'expenses', 'subcategory_report_data',
+                      input_option='USER_ENTERED')
+    #category field
+    db.post_to_gsheet(subcategory_report.reset_index()[[FIELDS['category'], 'Subcategory']],
+                      'expenses', 'subcategory_report_category',
                       input_option='USER_ENTERED')
 
 
