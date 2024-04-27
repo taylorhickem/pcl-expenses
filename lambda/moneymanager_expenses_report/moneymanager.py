@@ -46,11 +46,12 @@ def update(txns_raw: pd.DataFrame):
         new_txns = db_update(txns)
         if new_txns:
             reports_update(txns)
-            post_to_gsheet()
         else:
             message = 'no new transactions to update.'
     else:
         message = 'no new transactions to update.'
+
+    post_to_gsheet()
 
     return report_success, message
 
