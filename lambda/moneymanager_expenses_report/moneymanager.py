@@ -25,7 +25,8 @@ FIELDS = {
     'amount': 'SGD',
     'start_date': 'Period',
     'txn_type': 'Income/Expense',
-    'category': 'Category'
+    'category': 'Category',
+    'subcategory': 'Subcategory'
 }
 DROP_FIELDS = [
     'Accounts.1'
@@ -44,14 +45,13 @@ def update(txns_raw: pd.DataFrame):
     if len(txns_raw) > 0:
         txns = transactions_format(txns_raw)
         new_txns = db_update(txns)
-        if new_txns:
-            reports_update(txns)
-        else:
-            message = 'no new transactions to update.'
+        reports_update(txns)
+        post_to_gsheet()
+        if not new_txns:
+            message = 'report refreshed with no new transactions.'
     else:
-        message = 'no new transactions to update.'
+        message = 'no transactions detected.'
 
-    post_to_gsheet()
 
     return report_success, message
 
@@ -95,7 +95,7 @@ def reports_update(txns: pd.DataFrame):
         REPORTS['main_category_report'] = txns_pvt
 
         # 02 subcategory report
-        sub_cat_pvt = pd.pivot_table(txns, index=[FIELDS['category'], 'Subcategory'], columns='month',
+        sub_cat_pvt = pd.pivot_table(txns, index=[FIELDS['category'], FIELDS['subcategory']], columns='month',
                                      values=FIELDS['amount'], aggfunc='sum')
         sub_cat_pvt.fillna(0, inplace=True)
         REPORTS['subcategory_report'] = sub_cat_pvt
@@ -112,11 +112,12 @@ def post_to_gsheet():
 
     #02 subcategories
     subcategory_report = REPORTS['subcategory_report']
+
     #data fields
     db.post_to_gsheet(subcategory_report, 'expenses', 'subcategory_report_data',
                       input_option='USER_ENTERED')
     #category field
-    db.post_to_gsheet(subcategory_report.reset_index()[[FIELDS['category'], 'Subcategory']],
+    db.post_to_gsheet(subcategory_report.reset_index()[[FIELDS['category'], FIELDS['subcategory']]],
                       'expenses', 'subcategory_report_category',
                       input_option='USER_ENTERED')
 
