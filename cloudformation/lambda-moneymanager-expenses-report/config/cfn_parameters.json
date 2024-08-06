@@ -5,7 +5,8 @@
     "DataPrefix": "expense_txns",
     "DataFile": "txns.xlsx",
     "DynamoDBTableName": "pcl_expense_txns",
-    "LayerArns": [],
+    "TxnsUpdateFunctionName": "",
+    "TxnsUpdateLayerArns": [],
     "SourceBucket": "source-code-001",
     "SourceKey": "deploy_package/lambda/moneymanager-expenses-report.zip"
 }

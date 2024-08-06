@@ -17,9 +17,12 @@ Parameters:
   DynamoDBTableName:
     Type: String
     Description: DynamoDB table to store txn data
-  LayerArns:
+  TxnsUpdateFunctionName:
     Type: String
-    Description: List of Layer Arns as comma seperated strings used by the lambda function
+    Description: Lambda function for transaction update
+  TxnsUpdateLayerArns:
+    Type: String
+    Description: List of Layer Arns as comma seperated strings used by the transaction update lambda function
   SourceBucket:
     Type: String
     Description: S3 bucket containing the source code
@@ -36,7 +39,7 @@ Resources:
   TxnsUpdateLambda:
     Type: AWS::Serverless::Function
     Properties:
-      FunctionName: moneymanager-expenses-report
+      FunctionName: !Ref TxnsUpdateFunctionName
       Description: update moneymanager expense txn data from csv upload to s3
       CodeUri:
         Bucket: !Ref SourceBucket
@@ -51,7 +54,7 @@ Resources:
           S3_PREFIX: !Ref DataPrefix
           DATA_FILE: !Ref DataFile
           DB_TABLE_NAME: !Ref DynamoDBTableName
-      Layers: !Split [",", !Ref LayerArns]
+      Layers: !Split [",", !Ref TxnsUpdateLayerArns]
       Policies:
         - S3CrudPolicy:
             BucketName: !Ref StagingBucket
